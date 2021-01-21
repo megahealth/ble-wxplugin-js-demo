@@ -1,29 +1,50 @@
-import Taro, { Component, Config } from '@tarojs/taro'
+import Taro, { Component } from '@tarojs/taro'
 import { View, Button, Text } from '@tarojs/components'
 import { connect } from '@tarojs/redux'
-
 import { actionCreators as bleActionCreators } from "../../stores/store-ble";
+
+import api from '../../service/api'
 
 import './index.scss'
 
+const APPID = 'ZURNaXgbXw'
+const APPKEY = '&e)CPKK?z;|p0V3'
 // require plugin
-const blePlugin = Taro.requirePlugin('megable');
-const APPID = 'ZURNaXgbXw';
-const APPKEY = '&e)CPKK?z;|p0V3';
-const { initSdk } = blePlugin.ble;
+const myPluginInterface = Taro.requirePlugin('myPlugin')
+const {
+  initSdk,
+} = myPluginInterface.ble;
+console.log(myPluginInterface.ble);
+
 
 class Index extends Component {
 
-  config: Config = {
-    navigationBarTitleText: '首页',
+  config = {
+    navigationBarTitleText: '首页'
   }
 
-  componentWillReceiveProps(nextProps) {
-    // console.log(this.props, nextProps)
+  componentWillMount() {
+    const user = Taro.getStorageSync('user')
+    console.log(user);
+
+    if (user) {
+      this.props.handleUserExists(user)
+      
+      api.get('/users/' + user.objectId)
+      .then(res => {
+        if (res.data.sptToken && res.data.sptToken.indexOf(',') != -1) {
+          Taro.setStorageSync('token', res.data.sptToken)
+        }
+      })
+      .catch(err => console.log(err))
+    }else{
+      // Taro.navigateTo({ url: '/pages/login/login' })
+    }
   }
 
   componentDidMount() {
-    initSdk(APPID, APPKEY)
+    // console.log(wx.env, wx.getFileSystemManager())
+    initSdk(APPID, APPKEY, wx)
         .then(client => {
           console.log(client);
           this.props.handleInitClient(client);
@@ -31,7 +52,13 @@ class Index extends Component {
         .catch(err => console.error(err))
   }
 
-  componentWillUnmount() { }
+  componentWillReceiveProps(nextProps) {
+    console.log(this.props, nextProps)
+  }
+
+  componentWillUnmount() {
+    this.props.handleExit()
+  }
 
   componentDidShow() { }
 
@@ -43,6 +70,7 @@ class Index extends Component {
       handleStart,
       handleStop,
       handleGetData,
+      user,
       handleOpenRealTime,
       handleCloseRealTime,
       handleLiveOn,
@@ -56,7 +84,10 @@ class Index extends Component {
     return (
       <View>
         <View className='btn-block'>
-          <Button onClick={handleGoScanPage}>去扫描页</Button>
+          {
+            // user ? <Button onClick={handleGoScanPage}>去扫描页</Button> : null
+            <Button onClick={handleGoScanPage}>去扫描页</Button>
+          }
         </View>
 
         <View>
@@ -70,6 +101,9 @@ class Index extends Component {
         {
           device.name ? (
             <View>
+              {/* <Button onClick={handleStart}>开</Button>
+              <Button onClick={handleStop}>关</Button> */}
+
               <Button size='mini' onClick={handleOpenRealTime}>开实时通道</Button>
               <Button size='mini' onClick={handleCloseRealTime}>关实时通道</Button>
               <Button size='mini' onClick={handleLiveOn}>实时on</Button>
@@ -79,11 +113,56 @@ class Index extends Component {
               <Button size='mini' onClick={handleGetData}>收数据</Button>
               <Button size='mini' onClick={handleEnableRaw}>开raw</Button>
               <Button size='mini' onClick={handleDisableRaw}>关raw</Button>
+
             </View>
           ) : null
         }
+
+        <View>
+          {/* <Button size='mini' onClick={this.uploadMock}>上传</Button>
+          <Button size='mini' onClick={this.updateToken}>更新token</Button>
+          <Button size='mini' onClick={this.fetchUserInfo}>获取token</Button>
+          <Button size='mini' onClick={this.goDetail}>详情</Button> */}
+          
+          <Button onClick={this.goSptList}>列表</Button>
+          
+        </View>
+
+        {/* <View className='account' onClick={this.handleGoLoginPage}>
+          {user ? '已登录' : '未登录'}
+        </View> */}
       </View>
     )
+  }
+
+  handleGoLoginPage() {
+    Taro.navigateTo({ url: '/pages/login/login' })
+  }
+
+  uploadMock() {
+
+
+    // api.post()
+  }
+
+  updateToken() {
+    api.put('/users/' + this.props.user.objectId, {sptToken: 'xxx1'}, {'X-LC-Session': this.props.user.sessionToken})
+    .then(res => console.log(res))
+    .catch(err => console.log(err))
+  }
+
+  fetchUserInfo() {
+    api.get('/users/' + this.props.user.objectId)
+    .then(res => console.log(res))
+    .catch(err => console.log(err))
+  }
+
+  goDetail() {
+    Taro.navigateTo({ url: '/pages/spt-detail/spt-detail' })
+  }
+  goSptList() {
+    Taro.navigateTo({ url: '/pages/spt-list/spt-list' })
+
   }
 }
 
@@ -122,28 +201,28 @@ const mapDispatch = (dispatch) => {
     handleCloseRealTime(){
       bleActionCreators.enableRealTime(false)
     },
-    handleLiveOn() {
+    handleLiveOn(){
       bleActionCreators.liveOn()
     },
-    handleLiveOff() {
+    handleLiveOff(){
       bleActionCreators.liveOff()
     },
-    handleMonitorOn() {
+    handleMonitorOn(){
       bleActionCreators.monitorOn()
     },
-    handleMonitorOff() {
+    handleMonitorOff(){
       bleActionCreators.monitorOff()
     },
-    handleEnableRaw() {
+    handleEnableRaw(){
       bleActionCreators.enableRaw()
     },
-    handleDisableRaw() {
+    handleDisableRaw(){
       bleActionCreators.disableRaw()
     },
     handleInitClient(client) {
       bleActionCreators.initClient(client)
     }
-
+    
   }
 }
 

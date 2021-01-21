@@ -1,8 +1,8 @@
 import '@tarojs/async-await'
-import Taro, { Component, Config } from '@tarojs/taro'
+import Taro, { Component } from '@tarojs/taro'
 import { Provider } from '@tarojs/redux'
 
-import Index from './pages/index'
+import Index from './pages/index/index'
 
 import configStore from './store'
 
@@ -18,17 +18,14 @@ const store = configStore()
 
 class App extends Component {
 
-  /**
-   * 指定config的类型声明为: Taro.Config
-   *
-   * 由于 typescript 对于 object 类型推导只能推出 Key 的基本类型
-   * 对于像 navigationBarTextStyle: 'black' 这样的推导出的类型是 string
-   * 提示和声明 navigationBarTextStyle: 'black' | 'white' 类型冲突, 需要显示声明类型
-   */
-  config: Config = {
+  config = {
     pages: [
       'pages/index/index',
       'pages/scan/scan',
+      'pages/login/login',
+      'pages/spt-list/spt-list',
+      'pages/spt-detail/spt-detail',
+      'pages/reportDetail/reportDetail'
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -36,26 +33,25 @@ class App extends Component {
       navigationBarTitleText: 'WeChat',
       navigationBarTextStyle: 'black'
     },
-
-    plugins: {
-      "megable": {
-        "version": "1.1.2",
+    "plugins": {
+      "myPlugin": {
+        "version": "1.1.5",
         "provider": "wxf4fa9b179dfd7bca"
       },
     }
   }
 
-  componentDidMount() { }
+  componentDidMount () {}
 
-  componentDidShow() { }
+  componentDidShow () {}
 
-  componentDidHide() { }
+  componentDidHide () {}
 
-  componentDidCatchError() { }
+  componentDidCatchError () {}
 
   // 在 App 类中的 render() 函数没有实际作用
   // 请勿修改此函数
-  render() {
+  render () {
     return (
       <Provider store={store}>
         <Index />

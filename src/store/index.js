@@ -1,6 +1,7 @@
 import { createStore, applyMiddleware, compose } from 'redux'
 import thunkMiddleware from 'redux-thunk'
-import rootReducer from './reducer'
+import reducer from './reducer';
+
 
 const composeEnhancers =
   typeof window === 'object' &&
@@ -13,7 +14,7 @@ const middlewares = [
   thunkMiddleware
 ]
 
-if (process.env.NODE_ENV === 'development' && process.env.TARO_ENV !== 'quickapp') {
+if (process.env.NODE_ENV === 'development') {
   middlewares.push(require('redux-logger').createLogger())
 }
 
@@ -23,6 +24,6 @@ const enhancer = composeEnhancers(
 )
 
 export default function configStore () {
-  const store = createStore(rootReducer, enhancer)
+  const store = createStore(reducer, enhancer)
   return store
 }

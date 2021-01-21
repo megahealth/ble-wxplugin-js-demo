@@ -1,23 +1,24 @@
-import { constants } from "."
+import { constants } from "../store-ble"
 // import MegaBleScanner from "../../ble/MegaBleScanner"
 // import MegaBleClient from '../../ble/MegaBleClient'
 import Taro from '@tarojs/taro'
 
 // require plugin
-const blePlugin = Taro.requirePlugin('megable')
+const myPluginInterface = Taro.requirePlugin('myPlugin')
 
 const {
   initSdk,
   MegaBleScanner,
   MegaBleStatus,
-} = blePlugin.ble;
+} = myPluginInterface.ble;
 
-// Just for test, please use yours!!!
 const APPID = 'ZURNaXgbXw'
 const APPKEY = '&e)CPKK?z;|p0V3'
 
-let scanner: BleScanner;
-let client: BleClient;
+// MegaBleClient.init(APPID, APPKEY);
+
+let scanner = null
+let client = null
 
 const populateDevicesfound = data => ({
   type: constants.ACTION_DEVICES_FOUND,
@@ -72,6 +73,7 @@ export const scan = () => {
 }
 
 // init client
+
 export const initClient = (clnt) => {
   if (!client) client = clnt;
 }
@@ -223,7 +225,6 @@ const genMegaCallback = (dispatch) => {
     },
     onOperationStatus: (cmd, status) => {
       if (status !== 0) {
-        Taro.showToast({title: 'onOperationStatus: ' + cmd.toString(16) + ' - ' + status.toString(16)})
         console.error('onOperationStatus: ' + cmd.toString(16) + ' - ' + status.toString(16));
       }
     },
@@ -286,8 +287,11 @@ const genMegaCallback = (dispatch) => {
     onDeviceInfoUpdated: deviceInfo => {
       dispatch(updateDeviceInfo(deviceInfo))
     },
-    onRawdataCount: (count, bleCount, rawdataDuration) => {
+    onRawdataReceiving: (count, bleCount, rawdataDuration) => {
 
+    },
+    onRawdataComplete: info => {
+      console.log(info);
     },
     onDfuProgress: progress => {
 
