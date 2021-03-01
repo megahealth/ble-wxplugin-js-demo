@@ -190,6 +190,21 @@ export const logout = () => {
   }
 }
 
+// 构建formdata方法
+const createFormData = (params = {}, boundary = '') => {
+  let result = '';
+  for (let i in params) {
+    result += `\r\n--${boundary}`;
+    result += `\r\nContent-Disposition: form-data; name="${i}"`;
+    result += '\r\n';
+    result += `\r\n${params[i]}`
+  }
+  // 如果obj不为空，则最后一行加上boundary
+  if (result) {
+    result += `\r\n--${boundary}`
+  }
+  return result
+}
 
 /**
  * big callback
@@ -241,6 +256,37 @@ const genMegaCallback = (dispatch) => {
     },
     onSyncMonitorDataComplete: (bytes, dataStopType, dataType) => {
       console.log('onSyncMonitorDataComplete: ', bytes, dataStopType, dataType)
+      const DeviceInfo ={
+        "mac": "BC:E5:9F:48:89:20",
+        "sn": "C11E22005002537",
+        "swVer": "3.0.10657"
+      }
+      // 机构id
+      const institutionId = '5d5ce86aba39c800671c5a89'
+      
+      // 组织formdata需要
+      const boundary = `----MegaRing${new Date().getTime()}`;
+      //构建formdata
+      const formData = 
+      createFormData({ binData: bytes, institutionId:institutionId, remoteDevice:JSON.stringify(DeviceInfo)}, boundary)
+      
+      // request的options
+      var options = {
+        method: 'POST',
+        url: 'https://server-mhn.megahealth.cn/upload//uploadBinData',
+        header: {
+          'Accept': 'application/json',
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+        },
+        data:formData
+      };
+      // 请求接口返回报告id
+      wx.request(options).then(res=>{
+        console.log('report',res);
+        //拿到res中的报告id调用后处理接口得到json数据： url = 'https://raw.megahealth.cn/parse/parsemhn?objId=' + reportId;
+      }).catch(err=>{
+        console.log(err);
+      })
       dispatch(uploadSptData(bytes))
     },
     onSyncDailyDataComplete: (bytes) => {

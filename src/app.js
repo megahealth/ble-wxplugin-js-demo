@@ -35,7 +35,7 @@ class App extends Component {
     },
     "plugins": {
       "myPlugin": {
-        "version": "1.1.5",
+        "version": "1.1.8",
         "provider": "wxf4fa9b179dfd7bca"
       },
     }
